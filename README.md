@@ -10,3 +10,5 @@ what is needed? RSS file! And that's it
 pip install feedparser
 
 python main.py
+
+Enter the RSS link 
