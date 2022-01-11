@@ -2,6 +2,8 @@ import feedparser
 import requests
 import os
 import re
+from tqdm import tqdm
+
 
 
 def title_and_posts_from_rss(rss_file):
@@ -15,6 +17,21 @@ def data_from_post(post):
 
 def remove_spacial_char(text):
     return re.sub('\W+', ' ', text)
+
+
+def download(url, fname):
+    resp = requests.get(url, stream=True)
+    total = int(resp.headers.get('content-length', 0))
+    with open(fname, 'wb') as file, tqdm(
+            desc = 'download',
+            total = total,
+            unit = 'iB',
+            unit_scale = True,
+            unit_divisor = 1024,
+    ) as bar:
+        for data in resp.iter_content(chunk_size=1024):
+            size = file.write(data)
+            bar.update(size)
 
 
 def main():
@@ -31,11 +48,9 @@ def main():
         print("A new folder " + title + "  has been created")
     for post in posts:
         episode = data_from_post(post)
-        file_path = title + '\\' + remove_spacial_char(episode['title']) + '.mp3'
+        file_path = title + '/' + remove_spacial_char(episode['title']) + '.mp3'
         if not os.path.exists(file_path):
-            mp3 = requests.get(episode['link'])
-            with open(file_path, 'wb') as f:
-                f.write(mp3.content)
+            download(episode['link'], file_path)
         print(f"There are {len(posts) - posts.index(post) - 1} episodes left out of {len(posts)}")
     print('DONE!')
 
