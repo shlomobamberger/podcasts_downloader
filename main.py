@@ -5,7 +5,6 @@ import re
 from tqdm import tqdm
 
 
-
 def title_and_posts_from_rss(rss_file):
     news_feed = feedparser.parse(rss_file)
     return {'title': news_feed.channel.title, 'posts': news_feed.entries}
@@ -23,11 +22,11 @@ def download(url, fname):
     resp = requests.get(url, stream=True)
     total = int(resp.headers.get('content-length', 0))
     with open(fname, 'wb') as file, tqdm(
-            desc = 'download',
-            total = total,
-            unit = 'iB',
-            unit_scale = True,
-            unit_divisor = 1024,
+            desc='download',
+            total=total,
+            unit='iB',
+            unit_scale=True,
+            unit_divisor=1024,
     ) as bar:
         for data in resp.iter_content(chunk_size=1024):
             size = file.write(data)
