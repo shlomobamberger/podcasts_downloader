@@ -50,7 +50,7 @@ def main():
         file_path = title + '/' + remove_spacial_char(episode['title']) + '.mp3'
         if not os.path.exists(file_path):
             download(episode['link'], file_path)
-        print(f"There are {len(posts) - posts.index(post) - 1} episodes left out of {len(posts)}")
+        print(f"{len(posts) - posts.index(post) - 1}/{len(posts)} episodes left")
     print('DONE!')
 
 
