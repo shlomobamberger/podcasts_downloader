@@ -1,3 +1,5 @@
+import json
+
 import feedparser
 import requests
 import os
@@ -15,7 +17,7 @@ def data_from_post(post):
 
 
 def remove_spacial_char(text):
-    return re.sub('\W+', ' ', text)
+    return re.sub(r'\W+', ' ', text)
 
 
 def download(url, fname):
@@ -33,6 +35,43 @@ def download(url, fname):
             bar.update(size)
 
 
+def update_db(file_name):
+    db = get_db()
+
+    # object can be folder or file, if its file it should contain the folder name
+    if '/' not in file_name and file_name not in db:
+        db[file_name] = []
+    else:
+        folder_name = file_name.split('/')[0]
+        file_name = file_name.split('/')[1]
+        if folder_name not in db:
+            db[folder_name] = []
+        if file_name not in db[folder_name]:
+            db[folder_name].append(file_name)
+
+    # write db.json
+    with open('db.json', 'w') as file:
+        json.dump(db, file)
+
+
+def get_db():
+    # check if db.json exists
+    if not os.path.exists('db.json'):
+        with open('db.json', 'w') as file:
+            file.write('{}')
+    with open('db.json', 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+
+def check_db(file_name):
+    db = get_db()
+    if '/' not in file_name:
+        return file_name in db
+    folder_name = file_name.split('/')[0]
+    file_name = file_name.split('/')[1]
+    return folder_name in db and file_name in db[folder_name]
+
+
 def main():
     rss_link = ''
     if not rss_link:
@@ -44,12 +83,14 @@ def main():
     print('Starts with a download of ', len(posts), 'episodes from the podcast ' + title)
     if not os.path.exists(title):
         os.makedirs(title)
+        update_db(title)
         print("A new folder " + title + "  has been created")
     for post in posts:
         episode = data_from_post(post)
         file_path = title + '/' + remove_spacial_char(episode['title']) + '.mp3'
-        if not os.path.exists(file_path):
+        if not check_db(file_path):
             download(episode['link'], file_path)
+            update_db(file_path)
         print(f"{len(posts) - posts.index(post) - 1}/{len(posts)} episodes left")
     print('DONE!')
 
